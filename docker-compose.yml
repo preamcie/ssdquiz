@@ -13,15 +13,18 @@ services:
     command: ["tini", "--", "node", "index.js"]
 
   gitea:
-    build:
-      context: ./gitea
-      dockerfile: Dockerfile
-    container_name: gitea
-    ports:
-      - "3000:3000"
-      - "222:22"
-    volumes:
-      - ./gitea_data:/data
+      build:
+        context: ./gitea
+        dockerfile: Dockerfile
+      container_name: gitea
+      ports:
+        - "3000:3000"
+        - "222:22"
+      volumes:
+        - gitea_data:/data  # Named volume managed by Docker
+
+volumes:
+  gitea_data:
 
   sonarqube:
     image: sonarqube:latest
