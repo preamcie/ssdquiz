@@ -21,22 +21,21 @@ jobs:
           key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
           restore-keys: ${{ runner.os }}-node-modules
 
+      # Install dependencies at root (not only app/)
       - name: Install Node.js dependencies
-        run: npm install --prefix app
+        run: |
+          npm install
+          npm install eslint eslint-plugin-security @microsoft/eslint-formatter-sarif
 
-      - name: Install ESLint + Security Plugin
-        run: npm install eslint eslint-plugin-security @microsoft/eslint-formatter-sarif --prefix app
-
-      # 🔹 Create root-level reports folder (like your first prompt)
       - name: Create reports directory
         run: mkdir -p reports
 
-      - name: Run ESLint with SARIF output
+      - name: Run ESLint with SARIF output (root-level)
         run: |
-          npx eslint app --ext .js \
+          npx eslint . --ext .js \
             --format @microsoft/eslint-formatter-sarif \
             --output-file reports/eslint-results.sarif || true
-          ls -la reports  # Debugging: ensure SARIF file is present
+          ls -la reports
 
       - name: Upload SARIF to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
