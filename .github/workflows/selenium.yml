@@ -15,21 +15,22 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
-      testcontainer:
-        build:
-          context: ./app
-          dockerfile: Dockerfile
-        ports:
-          - 3000:80
-        options: >-
-          --health-cmd="curl -f http://localhost:80 || exit 1"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Install Node.js dependencies
+        run: npm install
+
+      - name: Start Web App
+        run: |
+          nohup npm start > app.log 2>&1 &
+          for i in {1..20}; do
+            curl -sf http://localhost:3000 && break
+            echo "Waiting for webapp..."
+            sleep 3
+          done
 
       - name: Install Selenium dependencies
         run: npm install selenium-webdriver
