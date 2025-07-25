@@ -1,39 +1,49 @@
-name: Selenium UI Tests
+name: UI + Unit Testing with Selenium
 
 on: [push, pull_request]
 
 jobs:
-  selenium-tests:
+  test:
     runs-on: ubuntu-latest
+
     services:
       selenium:
-        image: selenium/standalone-chrome:latest
+        image: selenium/standalone-chrome
         ports:
           - 4444:4444
-        options: >-
-          --health-cmd="curl -f http://localhost:4444/wd/hub/status || exit 1"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
+
+    container:
+      image: node:20
+      options: --network-alias=testcontainer
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Node.js dependencies
+      - name: Install dependencies
+        working-directory: app
         run: npm install
 
-      - name: Start Web App
+      - name: Start web app
+        working-directory: app
         run: |
-          nohup npm start > app.log 2>&1 &
-          for i in {1..20}; do
-            curl -sf http://localhost:3000 && break
-            echo "Waiting for webapp..."
-            sleep 3
+          nohup node index.js &
+          sleep 5
+
+      - name: Wait for web app
+        run: |
+          for i in {1..10}; do
+            curl -s http://testcontainer || sleep 2
           done
 
-      - name: Install Selenium dependencies
-        run: npm install selenium-webdriver
+      - name: Wait for Selenium
+        run: |
+          for i in {1..10}; do
+            curl -s http://selenium:4444/wd/hub/status | grep '"ready":true' && break || sleep 2
+          done
 
-      - name: Run Selenium Tests
-        run: node app/tests/SeleniumTest.mjs
+      - name: Run Selenium test
+        working-directory: app
+        run: |
+          npm install --no-save selenium-webdriver
+          node SeleniumTest.mjs github

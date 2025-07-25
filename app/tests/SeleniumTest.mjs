@@ -1,6 +1,6 @@
 import { Builder, By, until } from 'selenium-webdriver';
 
-const baseUrl = 'http://testcontainer';
+const baseUrl = 'http://testcontainer';   // 👈 matches the workflow network alias
 const seleniumHost = 'http://selenium:4444/wd/hub';
 
 (async () => {
@@ -11,7 +11,7 @@ const seleniumHost = 'http://selenium:4444/wd/hub';
 
   try {
     console.log("===== Selenium UI Test Report =====");
-    // test logic unchanged
+    // same tests you already wrote...
   } catch (err) {
     console.error('🚨 Selenium test failed:', err);
   } finally {
