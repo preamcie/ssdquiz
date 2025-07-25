@@ -1,0 +1,36 @@
+name: ESLint Code Analysis
+
+on: [push, pull_request]
+
+jobs:
+  eslint:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Cache Node.js modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: ${{ runner.os }}-node-modules
+
+      - name: Install Node.js dependencies
+        run: npm install --prefix app
+
+      - name: Install ESLint + Security Plugin
+        run: npm install eslint eslint-plugin-security @microsoft/eslint-formatter-sarif --prefix app
+
+      - name: Run ESLint with SARIF output
+        run: npx eslint app --ext .js --format @microsoft/eslint-formatter-sarif --output-file eslint-results.sarif || true
+
+      - name: Upload SARIF to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: eslint-results.sarif

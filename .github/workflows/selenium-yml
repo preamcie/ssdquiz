@@ -1,0 +1,42 @@
+name: Selenium UI Tests
+
+on: [push, pull_request]
+
+jobs:
+  selenium-tests:
+    runs-on: ubuntu-latest
+    services:
+      web:
+        build:
+          context: ./app
+          dockerfile: Dockerfile
+        ports:
+          - 3000:80
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Wait for webapp to be ready
+        run: |
+          for i in {1..20}; do
+            curl -sf http://localhost:3000 && break
+            echo "Waiting for webapp..."
+            sleep 3
+          done
+
+      - name: Install Selenium dependencies
+        run: |
+          npm install selenium-webdriver chromedriver --prefix app
+
+      - name: Run Selenium Tests & Save Report
+        run: |
+          mkdir -p selenium-report
+          node app/tests/SeleniumTest.mjs local | tee selenium-report/test-results.txt
+        continue-on-error: true
+
+      - name: Upload Selenium test report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenium-test-report
+          path: selenium-report/test-results.txt
