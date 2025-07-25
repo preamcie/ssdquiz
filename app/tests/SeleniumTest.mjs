@@ -1,24 +1,27 @@
 import { Builder, By, until } from 'selenium-webdriver';
+import chrome from 'selenium-webdriver/chrome';
 
 const baseUrl = 'http://localhost:3000';
 
 (async () => {
-  const driver = await new Builder().forBrowser('chrome').build();
+  // Configure Chrome options
+  const options = new chrome.Options()
+    .addArguments('--headless')
+    .addArguments('--no-sandbox')
+    .addArguments('--disable-dev-shm-usage')
+    .addArguments(`--user-data-dir=/tmp/chrome-profile-${Date.now()}`);
+
+  const driver = await new Builder()
+    .forBrowser('chrome')
+    .setChromeOptions(options)
+    .build();
 
   try {
+    console.log("===== Selenium UI Test Report =====");
     const testCases = [
-      {
-        term: "<script>alert('xss')</script>",
-        expectedError: "Invalid input detected!"
-      },
-      {
-        term: "drop table users;",
-        expectedError: "Invalid input detected!"
-      },
-      {
-        term: "validSearch",
-        expectedSuccess: true
-      }
+      { term: "<script>alert('xss')</script>", expectedError: "Invalid input detected!" },
+      { term: "drop table users;", expectedError: "Invalid input detected!" },
+      { term: "validSearch", expectedSuccess: true }
     ];
 
     for (const test of testCases) {
@@ -37,22 +40,22 @@ const baseUrl = 'http://localhost:3000';
           3000
         );
         const errorText = await errorElement.getText();
-        if (errorText.includes(test.expectedError)) {
-          console.log(`✅ Passed: "${test.term}" rejected correctly.`);
-        } else {
-          console.error(`❌ Error mismatch: ${errorText}`);
-        }
+        console.log(
+          errorText.includes(test.expectedError)
+            ? `✅ Passed: "${test.term}" rejected`
+            : `❌ Mismatch: ${errorText}`
+        );
       } else if (test.expectedSuccess) {
         const successHeader = await driver.wait(
           until.elementLocated(By.css('h1')),
           3000
         );
         const text = await successHeader.getText();
-        if (text === 'Search Term') {
-          console.log(`✅ Success test passed for: "${test.term}"`);
-        } else {
-          console.error(`❌ Expected search term page not found.`);
-        }
+        console.log(
+          text === 'Search Term'
+            ? `✅ Passed: "${test.term}" accepted`
+            : '❌ Expected search result page not found'
+        );
       }
     }
   } catch (err) {
@@ -61,4 +64,3 @@ const baseUrl = 'http://localhost:3000';
     await driver.quit();
   }
 })();
-console.log("===== Selenium UI Test Report =====");
