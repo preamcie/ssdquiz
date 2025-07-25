@@ -6,7 +6,7 @@ jobs:
   eslint:
     runs-on: ubuntu-latest
     permissions:
-      security-events: write
+      security-events: write   # Required for uploading SARIF
       actions: read
       contents: read
 
@@ -27,10 +27,15 @@ jobs:
       - name: Install ESLint + Security Plugin
         run: npm install eslint eslint-plugin-security @microsoft/eslint-formatter-sarif --prefix app
 
-      - name: Run ESLint with SARIF output
-        run: npx eslint app --ext .js --format @microsoft/eslint-formatter-sarif --output-file eslint-results.sarif || true
+      # 🔹 Same style as your first prompt: create reports dir
+      - name: Create reports directory
+        run: mkdir -p reports
 
+      - name: Run ESLint with SARIF output
+        run: npx eslint app --ext .js --format @microsoft/eslint-formatter-sarif --output-file reports/eslint-results.sarif || true
+
+      # 🔹 Updated CodeQL Action version to v3
       - name: Upload SARIF to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: eslint-results.sarif
+          sarif_file: reports/eslint-results.sarif
