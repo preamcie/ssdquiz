@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head><title>Search</title></head>
+<body>
+  <h1>Search</h1>
+  <% if (error) { %><p style="color:red"><%= error %></p><% } %>
+  <form method="POST" action="/search">
+    <input type="text" name="term" value="<%= value %>" placeholder="Enter search term" required />
+    <button type="submit">Submit</button>
+  </form>
+</body>
+</html>
