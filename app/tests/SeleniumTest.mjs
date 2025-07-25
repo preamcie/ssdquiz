@@ -11,7 +11,7 @@ const seleniumHost = 'http://selenium:4444/wd/hub';
 
   try {
     console.log("===== Selenium UI Test Report =====");
-    // Your original test cases here (unchanged)
+    // test logic unchanged
   } catch (err) {
     console.error('🚨 Selenium test failed:', err);
   } finally {

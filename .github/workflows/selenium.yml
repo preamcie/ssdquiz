@@ -5,34 +5,34 @@ on: [push, pull_request]
 jobs:
   selenium-tests:
     runs-on: ubuntu-latest
+    services:
+      selenium:
+        image: selenium/standalone-chrome:latest
+        ports:
+          - 4444:4444
+        options: >-
+          --health-cmd="curl -f http://localhost:4444/wd/hub/status || exit 1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+      testcontainer:
+        build:
+          context: ./app
+          dockerfile: Dockerfile
+        ports:
+          - 3000:80
+        options: >-
+          --health-cmd="curl -f http://localhost:80 || exit 1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Node.js dependencies
-        run: npm install
-
-      - name: Start web app
-        run: |
-          nohup npm start > app.log 2>&1 &
-          for i in {1..20}; do
-            curl -sf http://localhost:3000 && break
-            echo "Waiting for webapp..."
-            sleep 3
-          done
-
       - name: Install Selenium dependencies
-        run: npm install selenium-webdriver chromedriver
+        run: npm install selenium-webdriver
 
-      - name: Run Selenium Tests & Save Report
-        run: |
-          mkdir -p selenium-report
-          node app/tests/SeleniumTest.mjs local | tee selenium-report/test-results.txt
-        continue-on-error: true
-
-      - name: Upload Selenium test report artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: selenium-test-report
-          path: selenium-report/test-results.txt
+      - name: Run Selenium Tests
+        run: node app/tests/SeleniumTest.mjs
