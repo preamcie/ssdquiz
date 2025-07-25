@@ -1,19 +1,18 @@
 import { Builder, By, until } from 'selenium-webdriver';
-import chrome from 'selenium-webdriver/chrome';
 
 const baseUrl = 'http://localhost:3000';
 
 (async () => {
-  // Configure Chrome options
-  const options = new chrome.Options()
-    .addArguments('--headless')
-    .addArguments('--no-sandbox')
-    .addArguments('--disable-dev-shm-usage')
-    .addArguments(`--user-data-dir=/tmp/chrome-profile-${Date.now()}`);
-
   const driver = await new Builder()
     .forBrowser('chrome')
-    .setChromeOptions(options)
+    .setChromeOptions(
+      // Use `require` dynamically for options to avoid ESM import issues
+      new (require('selenium-webdriver/chrome').Options)()
+        .addArguments('--headless')
+        .addArguments('--no-sandbox')
+        .addArguments('--disable-dev-shm-usage')
+        .addArguments(`--user-data-dir=/tmp/chrome-profile-${Date.now()}`)
+    )
     .build();
 
   try {
