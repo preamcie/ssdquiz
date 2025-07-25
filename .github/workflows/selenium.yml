@@ -5,29 +5,33 @@ on: [push, pull_request]
 jobs:
   selenium-tests:
     runs-on: ubuntu-latest
+
     services:
       web:
-        build:
-          context: ./app
-          dockerfile: Dockerfile
+        image: node:alpine
         ports:
           - 3000:80
+        options: >-
+          --health-cmd="curl -f http://localhost:80 || exit 1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Wait for webapp to be ready
+      - name: Install Node.js dependencies
+        run: npm install
+
+      - name: Start web app
         run: |
-          for i in {1..20}; do
-            curl -sf http://localhost:3000 && break
-            echo "Waiting for webapp..."
-            sleep 3
-          done
+          nohup npm start > app.log 2>&1 &
+          sleep 5
+          curl -sf http://localhost:3000 || exit 1
 
       - name: Install Selenium dependencies
-        run: |
-          npm install selenium-webdriver chromedriver --prefix app
+        run: npm install selenium-webdriver chromedriver
 
       - name: Run Selenium Tests & Save Report
         run: |
