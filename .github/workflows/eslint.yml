@@ -27,18 +27,18 @@ jobs:
       - name: Install ESLint + Security Plugin
         run: npm install eslint eslint-plugin-security @microsoft/eslint-formatter-sarif --prefix app
 
+      # 🔹 Create root-level reports folder (like your first prompt)
       - name: Create reports directory
-        run: mkdir -p app/reports
+        run: mkdir -p reports
 
       - name: Run ESLint with SARIF output
         run: |
-          cd app
-          npx eslint . --ext .js \
+          npx eslint app --ext .js \
             --format @microsoft/eslint-formatter-sarif \
             --output-file reports/eslint-results.sarif || true
-          ls -la reports  # Debug - ensure SARIF exists
+          ls -la reports  # Debugging: ensure SARIF file is present
 
       - name: Upload SARIF to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: app/reports/eslint-results.sarif
+          sarif_file: reports/eslint-results.sarif
